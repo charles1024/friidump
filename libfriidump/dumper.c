@@ -197,7 +197,7 @@ bool dumper_prepare (dumper *dmp) {
 	} else {
 		dmp -> fp_raw = NULL;
 	}
-
+	// somethign between here and return is compleatly fucking the stack
 	/* Setup ISO output file */
 	if (dmp -> outfile_iso) {
 		dmp -> fp_iso = fopen (dmp -> outfile_iso, "a+b");
@@ -205,8 +205,15 @@ bool dumper_prepare (dumper *dmp) {
 		if (dmp -> hashing) {
 			debug ("Calculating hashes for pre-existing ISO dump data");
 			if (dmp -> start_sector > 0) {
-				for (i = 0; i < dmp -> start_sector && (r = fread (buf, SECTOR_SIZE, 1, dmp -> fp_iso)) > 0; i++)
-					multihash_update (&(dmp -> hash_iso), buf, SECTOR_SIZE);
+				for (i = 0; i < dmp -> start_sector ; i++) {
+					r = fread (buf, SECTOR_SIZE, 1, dmp -> fp_iso);
+					if (r > 0 ) {
+						multihash_update (&(dmp -> hash_iso), buf, SECTOR_SIZE);
+					}
+					else {
+						break;
+					}
+				}
 				MY_ASSERT (r > 0);
 			}
 		}
